@@ -1,0 +1,33 @@
+name: Build AppSync Unified
+on: [workflow_dispatch, push]
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [roothide, rootless, ""]      # "" = rootful
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: |
+          brew install ldid xz dpkg make || true
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$HOME/theos"
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+          echo "$HOME/theos/bin" >> "$GITHUB_PATH"
+      - name: Build
+        env:
+          THEOS_PACKAGE_SCHEME: ${{ matrix.scheme }}
+        run: |
+          make clean || true
+          make package ARCHS="arm64 arm64e" \
+            TARGET=iphone:clang:latest:15.0 \
+            FINALPACKAGE=1 DEBUG=0
+      - name: Collect
+        run: |
+          mkdir -p out && find . -name "*.deb" -not -path "./out/*" -exec cp {} out/ \;
+          ls -lh out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appsync-${{ matrix.scheme || 'rootful' }}
+          path: out/*.deb
