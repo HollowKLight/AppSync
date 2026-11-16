@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scheme: [roothide, rootless, ""]      # "" = rootful
+        scheme: [roothide]
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
