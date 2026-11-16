@@ -10,9 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
+        env:
+          THEOS_REPO: ${{ matrix.scheme == 'roothide' && 'https://github.com/roothide/theos.git' || 'https://github.com/theos/theos.git' }}
         run: |
           brew install ldid xz dpkg make || true
-          git clone --recursive --depth 1 https://github.com/theos/theos.git "$HOME/theos"
+          git clone --recursive --depth 1 "$THEOS_REPO" "$HOME/theos"
           echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
           echo "$HOME/theos/bin" >> "$GITHUB_PATH"
       - name: Build
